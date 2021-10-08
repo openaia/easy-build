@@ -1,0 +1,1 @@
+docker run -ti --privileged --net host --device=/dev/nvme0n1p4 gmacario/build-yocto
