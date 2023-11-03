@@ -1,0 +1,23 @@
+name: build-yocto runner
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: build-yocto CI-runner 1
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: build
+        run: |
+          docker build -t docker.edgeble/build-yocto build-yocto
+
+      - name: push
+        run: |
+          docker push docker.edgeble/build-yocto
