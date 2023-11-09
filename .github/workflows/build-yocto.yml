@@ -24,15 +24,5 @@ jobs:
 
     - name: Build and Push Docker Image
       run: |
-        if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/master" ]; then
-          docker build -t docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:15.04 -f build-yocto/Dockerfile-ubuntu-15.04 build-yocto
+          docker build -t docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:15.04 -f build-yocto/Dockerfile-ubuntu-15.04 .
           docker push docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:15.04
-
-          docker build -t docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:19.04 -f build-yocto/Dockerfile-ubuntu-18.04 build-yocto
-          docker push docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:19.04
-
-          docker build -t docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:20.04 -f build-yocto/Dockerfile-ubuntu-20.04 build-yocto
-          docker push docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:20.04
-        else
-          echo "Not on the master branch, skipping Docker image build."
-        fi
