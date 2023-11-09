@@ -1,23 +1,38 @@
-name: build-yocto runner
+name: Build and Publish Docker Image
 
 on:
   push:
+    paths:
+      - 'build-yocto/Dockerfile-*'
     branches:
       - master
 
 jobs:
   build:
-    name: build-yocto CI-runner 1
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - name: Checkout Repository
+      uses: actions/checkout@v2
 
-      - name: build
-        run: |
-          docker build -t docker.edgeble/build-yocto build-yocto
+    - name: Login to GitHub Packages
+      uses: docker/login-action@v1
+      with:
+        registry: docker.pkg.github.com
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: push
-        run: |
-          docker push docker.edgeble/build-yocto
+    - name: Build and Push Docker Image
+      run: |
+        if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/master" ]; then
+          docker build -t docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:15.04 -f build-yocto/Dockerfile-ubuntu-15.04 build-yocto
+          docker push docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:15.04
+
+          docker build -t docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:19.04 -f build-yocto/Dockerfile-ubuntu-18.04 build-yocto
+          docker push docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:19.04
+
+          docker build -t docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:20.04 -f build-yocto/Dockerfile-ubuntu-20.04 build-yocto
+          docker push docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:20.04
+        else
+          echo "Not on the master branch, skipping Docker image build."
+        fi
