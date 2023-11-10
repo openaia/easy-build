@@ -18,6 +18,7 @@ ENV LANG en_US.utf8
 
 # Install packages listed in Debos documentation as esential
 RUN apt-get update && apt-get install -y \
+    git \
     debos \
     dosfstools \
     python3-pip && \
