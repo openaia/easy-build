@@ -8,6 +8,16 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # Set up locales
 RUN apt-get update && apt-get install -y \
+    locales sudo && \
+    dpkg-reconfigure locales && \
+    locale-gen en_US.UTF-8 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV LANG en_US.utf8
+
+# Install packages listed in Debos documentation as esential
+RUN apt-get update && apt-get install -y \
     debos \
     dosfstools \
     python3-pip && \
@@ -15,8 +25,6 @@ RUN apt-get update && apt-get install -y \
     rm -rf /var/lib/apt/lists/*
 
 RUN pip install gdown
-
-ENV LANG en_US.utf8
 
 # Install and update ca-certificates
 RUN apt-get update && apt-get install -y \
