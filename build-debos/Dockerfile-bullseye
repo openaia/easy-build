@@ -20,12 +20,9 @@ ENV LANG en_US.utf8
 RUN apt-get update && apt-get install -y \
     git \
     debos \
-    dosfstools \
-    python3-pip && \
+    dosfstools && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
-RUN pip install gdown
 
 # Install and update ca-certificates
 RUN apt-get update && apt-get install -y \
