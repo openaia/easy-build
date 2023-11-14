@@ -1,50 +1,83 @@
-#
-# Docker Bionic image to build Yocto 3.0
-#
 FROM ubuntu:18.04
 
-# Keep the dependency list as short as reasonable
-RUN apt-get update && \
-    apt-get install -y bc bison bsdmainutils build-essential curl locales \
-        flex g++-multilib gcc-multilib git gnupg gperf lib32ncurses5-dev \
-        lib32z1-dev libncurses5-dev git-lfs \
-        libsdl1.2-dev libxml2-utils lzop \
-        openjdk-8-jdk lzop wget git-core unzip \
-        genisoimage sudo socat xterm gawk cpio texinfo \
-        gettext vim diffstat chrpath \
-        python-mako libusb-1.0-0-dev exuberant-ctags \
-        pngcrush schedtool xsltproc zip zlib1g-dev libswitch-perl && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+LABEL maintainer="Jagan Teki <jagan@edgeble.ai>"
+LABEL release="kirkstone"
 
-ADD https://commondatastorage.googleapis.com/git-repo-downloads/repo /usr/local/bin/
-RUN chmod 755 /usr/local/bin/*
+# Set up the non-interactive container build
+ARG DEBIAN_FRONTEND=noninteractive
 
-# ===== create user/setup environment =====
-# Replace 1000 with your user/group id
-RUN export uid=1000 gid=1000 user=ub && \
-    mkdir -p /home/${user} && \
-    echo "${user}:x:${uid}:${gid}:${user},,,:/home/${user}:/bin/bash" >> /etc/passwd && \
-    echo "${user}:x:${uid}:" >> /etc/group && \
-    echo "${user} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${user} && \
-    chmod 0440 /etc/sudoers.d/${user} && \
-    chown ${uid}:${gid} -R /home/${user}
+# Set up locales
+RUN apt-get update && apt-get install -y \
+    apt-utils locales sudo && \
+    dpkg-reconfigure locales && \
+    locale-gen en_US.UTF-8 && \
+    update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# The persistent data will be in these two directories, everything else is
-# considered to be ephemeral
-#VOLUME ["/tmp/ccache", "/aosp"]
+ENV LANG en_US.utf8
 
-# Improve rebuild performance by enabling compiler cache
-ENV USE_CCACHE 1
-ENV CCACHE_DIR /home/ub/.ccache
+# Install packages listed in Yocto documentation as esential
+RUN apt-get update && apt-get install -y \
+    gawk \
+    wget \
+    git \
+    diffstat \
+    unzip \
+    texinfo \
+    gcc \
+    build-essential \
+    chrpath \
+    socat \
+    cpio \
+    python3 \
+    python3-pip \
+    python3-pexpect \
+    xz-utils \
+    debianutils \
+    iputils-ping \
+    python3-git \
+    python3-jinja2 \
+    libegl1-mesa \
+    libsdl1.2-dev \
+    xterm \
+    python3-subunit \
+    mesa-common-dev \
+    zstd \
+    liblz4-tool && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# some QT-Apps/Gazebo do not show controls without this
-ENV QT_X11_NO_MITSHM 1
+RUN pip3 install GitPython pylint
 
-# Set the locale
-RUN locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
- 
-ENV HOME /home/ub
-ENV USER ub
-USER ub
-#WORKDIR /home/ub
+# Install packages added by 3mdeb
+RUN apt-get update && apt-get install -y \
+    bc \
+    dos2unix \
+    fop \
+    g++-multilib \
+    gcc-multilib \
+    git-lfs \
+    libncurses5-dev \
+    python3-dev \
+    python2.7-dev \
+    tmux \
+    vim \
+    xsltproc && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install and update ca-certificates
+RUN apt-get update && apt-get install -y \
+    apt-transport-https \
+    ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    update-ca-certificates
+
+RUN useradd -ms /bin/bash build
+RUN usermod -aG sudo build
+RUN echo "build ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/build
+
+USER build
+WORKDIR /home/build
