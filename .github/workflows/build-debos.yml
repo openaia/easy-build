@@ -27,5 +27,5 @@ jobs:
 
     - name: Build and Push Docker Image
       run: |
-          docker build -t docker.pkg.github.com/${{ github.repository }}/build-debos:bullseye -f build-debos/Dockerfile-bullseye .
-          docker push docker.pkg.github.com/${{ github.repository }}/build-debos:bullseye
+          docker build -t docker.pkg.github.com/${{ github.repository }}/build-debos:bookworm -f build-debos/Dockerfile-bookworm .
+          docker push docker.pkg.github.com/${{ github.repository }}/build-debos:bookworm
