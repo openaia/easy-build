@@ -2,8 +2,6 @@ name: Build and Publish Docker Image
 
 on:
   push:
-    paths:
-      - 'build-yocto/Dockerfile-*'
     branches:
       - master
 
@@ -26,6 +24,3 @@ jobs:
       run: |
           docker build -t docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:15.04 -f build-yocto/Dockerfile-ubuntu-15.04 .
           docker push docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:15.04
-
-          docker build -t docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:18.04 -f build-yocto/Dockerfile-ubuntu-18.04 .
-          docker push docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:18.04
