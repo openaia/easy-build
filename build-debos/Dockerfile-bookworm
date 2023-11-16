@@ -20,6 +20,7 @@ ENV LANG en_US.utf8
 RUN apt-get update && apt-get install -y \
     git \
     debos \
+    pigz \
     fdisk \
     dosfstools && \
     apt-get clean && \
