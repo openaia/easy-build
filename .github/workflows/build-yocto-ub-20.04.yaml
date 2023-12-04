@@ -1,0 +1,29 @@
+name: Build and Publish Docker Image
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Login to GitHub Packages
+      uses: docker/login-action@v1
+      with:
+        registry: docker.pkg.github.com
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and Push Docker Image
+      run: |
+          docker build -t docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:20.04 -f build-yocto/Dockerfile-ubuntu-20.04 .
+          docker push docker.pkg.github.com/${{ github.repository }}/build-yocto-ubuntu:20.04
