@@ -1,0 +1,73 @@
+FROM debian:bookworm
+
+LABEL maintainer="Jagan Teki <jagan@edgeble.ai>"
+LABEL release="bookworm"
+
+# Set up the non-interactive container build
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Set up locales
+RUN apt-get update && apt-get install -y \
+    locales sudo && \
+    dpkg-reconfigure locales && \
+    locale-gen en_US.UTF-8 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV LANG en_US.utf8
+
+# Install packages listed in Debos documentation as esential
+RUN apt-get update && apt-get install -y \
+    git \
+    debos \
+    pigz \
+    fdisk \
+    dosfstools && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install and update ca-certificates
+RUN apt-get update && apt-get install -y \
+    apt-transport-https \
+    ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    update-ca-certificates
+
+# Intall Java
+RUN apt-get update && apt-get install -y \
+    default-jre && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Intall curl
+RUN apt-get update && apt-get install -y \
+    curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN useradd -ms /bin/bash build
+RUN usermod -aG sudo build
+RUN echo "build ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/build
+
+USER build
+WORKDIR /home/build
+
+# Copy the script to the container
+RUN  mkdir /home/build/scripts/
+COPY scripts/enable-auth-hawkbit.sh /home/build/scripts/enable-auth-hawkbit.sh
+
+# Download and setup Apache Maven
+RUN cd /home/build && \
+    wget https://mirrors.estointernet.in/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz && \
+    tar -xvf apache-maven-3.6.3-bin.tar.gz && \
+    rm apache-maven-3.6.3-bin.tar.gz
+
+# Set Maven environment variables
+ENV M2_HOME=/home/build/apache-maven-3.6.3
+ENV PATH=$M2_HOME/bin:$PATH
+
+# Clone and build Hawkbit
+RUN git clone https://github.com/manojams/hawkbit.git /home/build/hawkbit && \
+    cd /home/build/hawkbit && \
+    mvn clean install
